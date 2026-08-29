@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.local/schemas/task.schema.json",
+  "title": "ri-hub task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "source_tool",
+    "source_ref",
+    "title",
+    "queue",
+    "status",
+    "priority",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-[0-9]{8}-[0-9]{4}$"
+    },
+    "source_tool": {
+      "type": "string",
+      "pattern": "^ri-[a-z0-9-]+$"
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_id": {
+      "type": ["string", "null"]
+    },
+    "customer_id": {
+      "type": ["string", "null"]
+    },
+    "property_id": {
+      "type": ["string", "null"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "queue": {
+      "type": "string",
+      "enum": ["Inbox", "Today", "Viewing", "Research", "Hold", "Approval", "Audit", "Waiting", "Field"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "waiting", "hold", "approval", "done", "cancelled"]
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2", "P3", "P4"]
+    },
+    "assignee": {
+      "type": ["string", "null"]
+    },
+    "due_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "gate": {
+      "type": ["string", "null"],
+      "enum": ["send", "publish", "contract", "money", "privacy", "professional", null]
+    },
+    "hold_reason": {
+      "type": ["string", "null"]
+    },
+    "approval_role": {
+      "type": ["string", "null"],
+      "enum": ["宅建士", "弁護士", "行政書士", "建築士", "税理士", "代表", "経理", "責任者", null]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "portal_lead_id": {
+      "type": ["string", "null"],
+      "pattern": "^PLEAD-[0-9]{8}-[0-9]{4}$"
+    },
+    "platform_id": {
+      "type": ["string", "null"],
+      "enum": [
+        "suumo",
+        "lifull_homes",
+        "athome_atbb",
+        "rakumachi",
+        "kenbiya",
+        "own_site",
+        "line_official",
+        "other",
+        null
+      ]
+    },
+    "customer_name": {
+      "type": ["string", "null"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "hold"
+          }
+        }
+      },
+      "then": {
+        "required": ["hold_reason"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "approval"
+          }
+        }
+      },
+      "then": {
+        "required": ["approval_role"]
+      }
+    }
+  ]
+}

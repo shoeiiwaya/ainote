@@ -1,0 +1,151 @@
+<style>
+/* survey — 編集地図・測量図の奥付。署名=縦の朱 transit spine が街名・基準点表・表題欄を串刺す。
+   必要表示事項(帯/免許/価格/面積/態様/所在地/最寄駅)は DATUM(基準点表)と TITLE-BLOCK(表題欄)に収める。
+   ブランド色は --accent の1系統のみ(spine/ピン/価格罫の単点)。 */
+:root{
+  --accent:{{accent}};            /* 業者のブランド色（既定=朱） */
+  --accent-ink:{{accent_ink}};    /* accent上の文字色（自動コントラスト） */
+  --paper:#eceee9;                /* 冷灰（cream回避） */
+  --ink:#16191c; --ink2:#3a4149; --rule:#c7ccc6; --soft:#9aa29b;
+  --font-display:{{font_display}};
+  --font-body:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  --font-data:ui-monospace,"SFMono-Regular",Menlo,"Roboto Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#d7dad5}
+.sheet{width:210mm;min-height:297mm;background:var(--paper);color:var(--ink);
+  font-family:var(--font-body);position:relative;overflow:hidden;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;font-feature-settings:"palt"}
+/* 署名: 天地を貫く朱の transit spine */
+.spine{position:absolute;left:11mm;top:0;bottom:0;width:.5mm;background:var(--accent)}
+.spine .stop{position:absolute;left:-1.4mm;width:3.3mm;height:3.3mm;border-radius:50%;
+  background:var(--paper);border:.5mm solid var(--accent)}
+.body{position:relative;padding:12mm 12mm 10mm 20mm;min-height:297mm;display:flex;flex-direction:column}
+/* 上段: figure-ground 概念図に街名を重量特大で縁被り */
+.masthead{position:relative;border-bottom:.35mm solid var(--ink);padding-bottom:4mm;margin-bottom:5mm}
+.eyebrow{font-family:var(--font-data);font-size:7.5pt;letter-spacing:.34em;color:var(--soft);text-transform:uppercase}
+.street{font-family:var(--font-display);font-weight:800;font-size:34pt;line-height:.96;
+  letter-spacing:0;margin-top:1.5mm}
+.ptype{display:inline-block;font-family:var(--font-data);font-size:8pt;font-weight:700;
+  color:var(--accent-ink);background:var(--accent);padding:.8mm 3mm;letter-spacing:.1em;margin-top:2.5mm}
+.copy{font-size:9.5pt;color:var(--ink2);line-height:1.6;margin-top:3mm;max-width:150mm}
+/* 中段: 基準点データ表 DATUM（測量ベンチマーク体裁・小数点スパイン） */
+.datum{margin-top:6mm}
+.sect{font-family:var(--font-data);font-size:7.5pt;letter-spacing:.3em;color:var(--soft);
+  text-transform:uppercase;border-bottom:.25mm solid var(--rule);padding-bottom:1.2mm;margin-bottom:2.5mm}
+.dgrid{display:grid;grid-template-columns:34mm 1fr;row-gap:1.8mm;column-gap:4mm}
+.dk{font-size:8.5pt;color:var(--soft)}
+.dv{font-size:10pt;color:var(--ink);font-family:var(--font-data);font-variant-numeric:tabular-nums;
+  border-bottom:.2mm dotted var(--rule);padding-bottom:.6mm}
+.dv.big{font-size:13pt;font-weight:700}
+/* 価格（アクセント罫の単点） */
+.pricebox{margin:5mm 0;padding-top:3mm;border-top:.6mm solid var(--accent)}
+.plabel{font-family:var(--font-data);font-size:7.5pt;letter-spacing:.28em;color:var(--soft)}
+.price{font-family:var(--font-display);font-weight:800;font-size:30pt;line-height:1;letter-spacing:.005em}
+.price .u{font-size:13pt;font-weight:600;margin-left:1mm}
+.yield{font-family:var(--font-data);font-size:9pt;color:var(--ink2);margin-top:1.5mm;font-variant-numeric:tabular-nums}
+.price-note{font-family:var(--font-data);font-size:7pt;color:var(--ink2);margin-top:1.5mm;white-space:pre-line}
+.price-note:empty{display:none}
+/* 下段: 表題欄 TITLE-BLOCK（製図表題欄書式・帯=必要表示事項） */
+.visual-grid{height:32mm;margin-top:5mm;display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:2mm}
+.visual-panel{border:.25mm solid var(--rule);position:relative;overflow:hidden;background:#e4e7e2;display:flex;align-items:center;justify-content:center;color:var(--soft);font:7.2pt var(--font-data)}
+.visual-panel::before{content:attr(data-empty-label);position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.visual-panel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.visual-panel.floorplan img{object-fit:contain}
+.visual-panel img[src=""]{display:none}
+.visual-panel .media-label{position:absolute;top:1.5mm;left:1.5mm;z-index:2;background:var(--paper);padding:.6mm 1.5mm;color:var(--ink2)}
+.visual-panel .media-tag{position:absolute;top:1.5mm;right:1.5mm;z-index:2;background:var(--accent);color:var(--accent-ink);padding:.6mm 1.5mm}
+.visual-panel img[src=""]~.media-label,.visual-panel img[src=""]~.media-tag{display:none}
+.legend{font-family:var(--font-data);font-size:7.5pt;color:var(--ink2);line-height:1.8;margin-top:3mm;white-space:pre-line}
+.legend-label{color:var(--soft);margin-right:2mm}
+.tblock{margin-top:auto;border:.35mm solid var(--ink)}
+.tb-top{display:flex;justify-content:space-between;align-items:baseline;
+  padding:2.5mm 4mm;border-bottom:.25mm solid var(--rule)}
+.tb-co{font-family:var(--font-display);font-weight:700;font-size:12pt}
+.tb-tai{font-family:var(--font-data);font-size:8pt;color:var(--ink2);letter-spacing:.08em}
+.tb-rows{display:grid;grid-template-columns:1fr 1fr;font-family:var(--font-data);font-size:7.8pt}
+.tb-rows div{padding:1.8mm 4mm;border-top:.2mm solid var(--rule)}
+.tb-rows div:nth-child(odd){border-right:.2mm solid var(--rule)}
+.tb-k{color:var(--soft)}
+@page{size:A4;margin:0}
+@media print{html,body{background:#fff}}
+</style>
+
+<div class="sheet">
+  <div class="spine">
+    <span class="stop" style="top:24mm"></span>
+    <span class="stop" style="top:96mm"></span>
+    <span class="stop" style="top:168mm"></span>
+    <span class="stop" style="bottom:36mm"></span>
+  </div>
+  <div class="body">
+    <div class="masthead">
+      <div class="eyebrow">{{nearest_station}} ・ {{access}}</div>
+      <div class="street">{{property_name}}</div>
+      <div class="ptype">{{property_type}}</div>
+      <div class="copy">{{title_copy}}</div>
+    </div>
+
+    <div class="pricebox">
+      <div class="plabel">{{price_label}}</div>
+      <div class="price">{{price_num}}<span class="u">{{price_unit}}</span></div>
+      <div class="yield">{{yield_rate}}</div>
+      <div class="price-note">{{price_note}}</div>
+    </div>
+
+    <div class="datum">
+      <div class="sect">Datum ／ 基準点</div>
+      <div class="dgrid">
+        <div class="dk">所在地</div><div class="dv">{{address}}</div>
+        <div class="dk">最寄駅・交通</div><div class="dv">{{nearest_station}} {{access}}</div>
+        <div class="dk">土地／敷地面積</div><div class="dv">{{land_area}}</div>
+        <div class="dk">建物／専有面積</div><div class="dv">{{building_area}}</div>
+        <div class="dk">間取り</div><div class="dv">{{floor_plan}}</div>
+        <div class="dk">築年月・構造</div><div class="dv">{{built}} {{structure}}</div>
+        <div class="dk">用途地域・建ぺい/容積</div><div class="dv">{{youto}} {{kenpei_yoseki}}</div>
+        <div class="dk">現況・引渡</div><div class="dv">{{genkyo}} {{hikiwatashi}}</div>
+        <div class="dk">{{income_basis_label}}</div><div class="dv">{{monthly_rent}}</div>
+        <div class="dk">取引態様</div><div class="dv">{{torihiki_taiyo}}</div>
+      </div>
+    </div>
+
+    <div class="visual-grid">
+      <figure class="visual-panel" data-empty-label="{{photo_main_empty_label}}">
+        <img src="{{photo_main}}" alt="{{photo_main_alt}}">
+        <span class="media-label">{{photo_main_caption}}</span>
+        <span class="media-tag">{{photo_main_tag}}</span>
+        <span>{{photo_main_caption}}</span>
+      </figure>
+      <figure class="visual-panel floorplan" data-empty-label="{{photo_floorplan_empty_label}}">
+        <img src="{{photo_floorplan}}" alt="{{photo_floorplan_alt}}">
+        <span class="media-label">{{photo_floorplan_caption}}</span>
+        <span>{{photo_floorplan_caption}}　{{floor_plan}}</span>
+      </figure>
+      <figure class="visual-panel" data-empty-label="{{photo_map_empty_label}}">
+        <img src="{{photo_map}}" alt="{{photo_map_alt}}">
+        <span class="media-label">{{photo_map_caption}}</span>
+        <span class="media-tag">{{photo_map_tag}}</span>
+        <span>{{photo_map_caption}}</span>
+      </figure>
+    </div>
+
+    <div class="legend">案内図は概略表示です。縮尺・方位・区画は実測資料でご確認ください。<br><span class="legend-label">特記事項</span>{{special_notes}}<br><span class="legend-label">備考</span>{{bikou}}</div>
+
+    <div class="tblock">
+      <div class="tb-top">
+        <div class="tb-co" data-compliance="company_name">{{company_name}}</div>
+        <div class="tb-tai">取引態様: {{torihiki_taiyo}}</div>
+      </div>
+      <div class="tb-rows">
+        <div><span class="tb-k">宅建業免許 </span><span data-compliance="menkyo">{{license}}</span></div>
+        <div><span class="tb-k">TEL </span>{{company_tel}}　<span class="tb-k">FAX </span>{{company_fax}}</div>
+        <div><span class="tb-k">所属協会 </span><span data-compliance="kyokai">{{association}}</span></div>
+        <div><span class="tb-k">公取協 </span><span data-compliance="kotorikyo">{{fair_trade_association}}</span></div>
+        <div><span class="tb-k">所在地 </span>{{company_address}}　{{company_email}}</div>
+        <div><span class="tb-k">担当 </span>{{staff}}　<span class="tb-k">情報公開日 </span>{{published}}</div>
+        <div><span class="tb-k">次回更新予定 </span>{{next_update}}</div>
+        <div><span class="tb-k">取引条件の有効期限 </span>{{yuko_kigen}}</div>
+      </div>
+    </div>
+  </div>
+</div>

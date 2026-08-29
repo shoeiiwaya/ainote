@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>マイソク — クリーンUI型</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fff; }
+  body {
+    font-family: {{font_display}};
+    color: #222;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "palt";
+  }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .page {
+    width: 210mm; height: 297mm;
+    padding: 9mm 11mm 8mm;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    border-top: 1.6mm solid {{accent}};
+  }
+
+  /* ---------- header ---------- */
+  .head { display: flex; align-items: flex-start; gap: 4mm; margin-top: 2.5mm; }
+  .head-l { flex: 1; min-width: 0; }
+  .chips { display: flex; gap: 1.8mm; align-items: center; margin-bottom: 2.2mm; }
+  .chip {
+    font-size: 7pt; line-height: 1; padding: 1.4mm 2.6mm; border-radius: 999px;
+    letter-spacing: 0.05em;
+  }
+  .chip-type { background: #EEF1F0; color: #444; font-weight: 600; }
+  .chip-taiyo { background: {{accent}}; color: {{accent_ink}}; font-weight: 700; }
+  .title {
+    font-size: 18pt; font-weight: 700; line-height: 1.3;
+    letter-spacing: 0.02em; margin-bottom: 2.4mm;
+  }
+  .meta { display: flex; flex-direction: column; gap: 1.1mm; }
+  .meta-item { font-size: 7.5pt; color: #333; display: flex; align-items: baseline; gap: 1.8mm; }
+  .mlabel {
+    flex: none; font-size: 6pt; font-weight: 600; color: {{accent_text}};
+    border: 0.3mm solid {{accent}}; border-radius: 1mm;
+    padding: 0.5mm 1.4mm; line-height: 1; letter-spacing: 0.1em;
+  }
+  .price-card {
+    flex: none; width: 56mm; background: #F5F7F6; border-radius: 2mm;
+    padding: 3mm 4mm 2.6mm; text-align: right;
+  }
+  .price-label { font-size: 6.5pt; font-weight: 600; color: #666; letter-spacing: 0.15em; }
+  .price { font-size: 19pt; font-weight: 700; line-height: 1.25; letter-spacing: 0.01em; }
+  .price-note { font-size: 6pt; color: #888; margin-top: 0.8mm; }
+  .price-note:empty { display: none; }
+
+  /* ---------- photos ---------- */
+  .photos { margin-top: 4mm; }
+  .ph-grid-top {
+    display: grid; grid-template-columns: 1fr 60mm; gap: 3mm;
+  }
+  .ph-grid-sub {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin-top: 3mm;
+  }
+  .ph {
+    background: #EDEFEE; border-radius: 1.6mm; position: relative;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    color: #99A09E; font-size: 8pt; font-weight: 600; letter-spacing: 0.1em;
+  }
+  .ph::before {
+    content: attr(data-empty-label); position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+  .ph img[src=""] { display: none; }
+  .ph-main { height: 56mm; font-size: 10pt; }
+  .ph-plan { height: 56mm; background: #F4F5F4; border: 0.3mm dashed #C8CCCA; }
+  .ph-sub { height: 21mm; font-size: 7pt; }
+  .ph-tag {
+    position: absolute; top: 2mm; left: 2mm;
+    background: rgba(34,34,34,0.72); color: #fff;
+    font-size: 6pt; font-weight: 600; letter-spacing: 0.08em;
+    padding: 0.9mm 2mm; border-radius: 1mm; line-height: 1;
+  }
+  .ph img[src=""] ~ .ph-tag, .ph img[src=""] ~ .ph-caption { display: none; }
+  .staging-note {
+    margin-top: 2.2mm; display: flex; align-items: center; gap: 2mm;
+    border: 0.3mm solid {{accent}}; border-radius: 1.4mm;
+    padding: 1.6mm 2.6mm; font-size: 7pt; color: #222; line-height: 1.4;
+  }
+  .staging-badge {
+    flex: none; background: {{accent}}; color: {{accent_ink}}; font-size: 6pt; font-weight: 700;
+    padding: 0.9mm 2mm; border-radius: 1mm; letter-spacing: 0.12em; line-height: 1;
+  }
+  .staging-note:has(.staging-text:empty) { display: none; }
+
+  /* ---------- lead ---------- */
+  .lead {
+    margin-top: 3.6mm; padding: 0 0.5mm 0 3.4mm; border-left: 0.8mm solid {{accent}};
+    font-size: 8.5pt; line-height: 1.75; color: #2b2b2b;
+  }
+
+  /* ---------- highlight cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin-top: 4mm; }
+  .card {
+    background: #F5F7F6; border-radius: 1.8mm; padding: 2.4mm 3mm 2.2mm; min-height: 13.5mm;
+  }
+  .card-label {
+    font-size: 6pt; font-weight: 600; color: {{accent_text}}; letter-spacing: 0.15em;
+    display: flex; align-items: center; gap: 1.2mm; margin-bottom: 1.2mm;
+  }
+  .card-label::before {
+    content: ""; width: 1.6mm; height: 1.6mm; background: {{accent}}; border-radius: 0.4mm;
+  }
+  .card-value { font-size: 8.5pt; font-weight: 700; line-height: 1.4; }
+
+  /* ---------- spec table ---------- */
+  .spec { margin-top: 4mm; }
+  .sec-title {
+    font-size: 7.5pt; font-weight: 700; letter-spacing: 0.2em; color: #222;
+    display: flex; align-items: center; gap: 2mm; margin-bottom: 1.8mm;
+  }
+  .sec-title::after { content: ""; flex: 1; height: 0.25mm; background: #E1E5E3; }
+  .spec-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 6mm; }
+  .row {
+    display: flex; align-items: baseline; gap: 2.5mm;
+    border-bottom: 0.25mm solid #ECEEED; padding: 1.5mm 0;
+  }
+  .row.full { grid-column: 1 / -1; }
+  .rlabel { flex: none; width: 20mm; font-size: 6.2pt; font-weight: 600; color: #777; letter-spacing: 0.05em; }
+  .rvalue { font-size: 7.5pt; line-height: 1.5; color: #222; }
+
+  /* ---------- tokki ---------- */
+  .tokki {
+    margin-top: 3.6mm; border: 0.3mm solid #DDE1DF; border-radius: 1.8mm;
+    padding: 2.4mm 3mm 2.2mm;
+  }
+  .tokki-title { font-size: 6.8pt; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 1.6mm; }
+  .tokki-text { font-size: 6.8pt; color: #333; line-height: 1.5; white-space: pre-line; }
+
+  /* ---------- footer ---------- */
+  .foot { margin-top: auto; }
+  .dates {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3mm; margin-bottom: 2.6mm;
+  }
+  .date-cell {
+    background: #F5F7F6; border-radius: 1.4mm; padding: 1.8mm 2.6mm;
+  }
+  .date-cell.em { background: #fff; border: 0.35mm solid {{accent}}; }
+  .date-label { font-size: 6pt; font-weight: 600; color: #777; letter-spacing: 0.1em; }
+  .date-cell.em .date-label { color: {{accent_text}}; }
+  .date-value { font-size: 7.5pt; font-weight: 700; margin-top: 0.6mm; }
+  .company {
+    display: flex; align-items: flex-start; gap: 4mm;
+    border-top: 0.35mm solid #222; padding-top: 2.2mm;
+  }
+  .co-l { flex: 1; }
+  .co-name { font-size: 8.5pt; font-weight: 700; }
+  .co-lines { font-size: 6.3pt; color: #444; line-height: 1.55; margin-top: 0.8mm; }
+  .co-r { flex: none; text-align: right; }
+  .co-taiyo {
+    display: inline-block; border: 0.35mm solid #222; border-radius: 1mm;
+    font-size: 7pt; font-weight: 700; padding: 1.2mm 2.6mm; letter-spacing: 0.08em;
+  }
+  .co-tel { font-size: 8.5pt; font-weight: 700; margin-top: 1.2mm; }
+  .legal { margin-top: 1.8mm; font-size: 6pt; color: #888; line-height: 1.55; }
+</style>
+</head>
+<body>
+<!-- internal field (非表示): stock_check_date / 在庫確認日 — 成約時即時差替え運用用 -->
+<div class="page">
+
+  <!-- header -->
+  <header class="head">
+    <div class="head-l">
+      <div class="chips">
+        <span class="chip chip-type">{{property_type}}</span>
+        <span class="chip chip-taiyo">取引態様：{{torihiki_taiyo}}</span>
+      </div>
+      <h1 class="title">{{title_copy}}</h1>
+      <div class="meta">
+        <span class="meta-item"><span class="mlabel">所在地</span>{{address}}</span>
+        <span class="meta-item"><span class="mlabel">最寄駅・交通</span><span class="num">{{nearest_station}}　{{access}}</span></span>
+      </div>
+    </div>
+    <div class="price-card">
+      <div class="price-label">{{price_label}}</div>
+      <div class="price num">{{price}}</div>
+      <div class="price-note">{{price_note}}</div>
+    </div>
+  </header>
+
+  <!-- photos -->
+  <section class="photos">
+    <div class="ph-grid-top">
+      <div class="ph ph-main" data-empty-label="{{photo_main_empty_label}}"><img src="{{photo_main}}" alt="{{photo_main_alt}}"><span class="ph-tag">{{photo_main_tag}}</span><span class="ph-caption">{{photo_main_caption}}</span></div>
+      <div class="ph ph-plan" data-empty-label="{{photo_floorplan_empty_label}}"><img src="{{photo_floorplan}}" alt="{{photo_floorplan_alt}}"><span class="ph-caption">{{photo_floorplan_caption}}</span></div>
+    </div>
+    <div class="ph-grid-sub">
+      <div class="ph ph-sub" data-empty-label="{{photo_sub1_empty_label}}"><img src="{{photo_sub1}}" alt="{{photo_sub1_alt}}"><span class="ph-tag">{{photo_sub1_tag}}</span><span class="ph-caption">{{photo_sub1_caption}}</span></div>
+      <div class="ph ph-sub" data-empty-label="{{photo_sub2_empty_label}}"><img src="{{photo_sub2}}" alt="{{photo_sub2_alt}}"><span class="ph-tag">{{photo_sub2_tag}}</span><span class="ph-caption">{{photo_sub2_caption}}</span></div>
+      <div class="ph ph-sub" data-empty-label="{{photo_sub3_empty_label}}"><img src="{{photo_sub3}}" alt="{{photo_sub3_alt}}"><span class="ph-tag">{{photo_sub3_tag}}</span><span class="ph-caption">{{photo_sub3_caption}}</span></div>
+    </div>
+    <div class="staging-note">
+      <span class="staging-badge">画像注記</span>
+      <span class="staging-text">{{staging_note}}</span>
+    </div>
+  </section>
+
+  <!-- lead -->
+  <p class="lead">{{lead}}</p>
+
+  <!-- highlight cards -->
+  <section class="cards">
+    <div class="card"><div class="card-label">間取り</div><div class="card-value">{{floor_plan}}</div></div>
+    <div class="card"><div class="card-label">土地面積</div><div class="card-value num">{{land_area}}</div></div>
+    <div class="card"><div class="card-label">建物面積</div><div class="card-value num">{{building_area}}</div></div>
+    <div class="card"><div class="card-label">建築年月</div><div class="card-value num">{{built}}</div></div>
+  </section>
+
+  <!-- spec table -->
+  <section class="spec">
+    <div class="sec-title">物件概要</div>
+    <div class="spec-grid">
+      <div class="row"><span class="rlabel">構造</span><span class="rvalue">{{structure}}</span></div>
+      <div class="row"><span class="rlabel">接道状況</span><span class="rvalue num">{{road}}</span></div>
+      <div class="row"><span class="rlabel">用途地域</span><span class="rvalue">{{youto}}</span></div>
+      <div class="row"><span class="rlabel">建ぺい率／容積率</span><span class="rvalue num">{{kenpei_yoseki}}</span></div>
+      <div class="row"><span class="rlabel">私道負担</span><span class="rvalue">{{shidou}}</span></div>
+      <div class="row"><span class="rlabel">現況</span><span class="rvalue">{{genkyo}}</span></div>
+      <div class="row"><span class="rlabel">引渡し時期</span><span class="rvalue">{{hikiwatashi}}</span></div>
+      <div class="row"><span class="rlabel">設備</span><span class="rvalue">{{setsubi}}</span></div>
+      <div class="row full"><span class="rlabel">備考</span><span class="rvalue">{{bikou}}</span></div>
+    </div>
+  </section>
+
+  <!-- tokki -->
+  <section class="tokki">
+    <div class="tokki-title">特記事項</div>
+    <div class="tokki-text">{{special_notes}}</div>
+  </section>
+
+  <!-- footer -->
+  <footer class="foot">
+    <div class="dates">
+      <div class="date-cell"><div class="date-label">情報公開日</div><div class="date-value num">{{published}}</div></div>
+      <div class="date-cell"><div class="date-label">次回更新予定日</div><div class="date-value num">{{next_update}}</div></div>
+      <div class="date-cell em"><div class="date-label">取引条件の有効期限</div><div class="date-value num">{{yuko_kigen}}</div></div>
+    </div>
+    <div class="company">
+      <div class="co-l">
+        <div class="co-name">{{company_name}}</div>
+        <div class="co-lines">
+          免許番号：{{license}}<br>
+          {{association}}<br>
+          {{fair_trade_association}}<br>
+          {{company_address}}
+        </div>
+      </div>
+      <div class="co-r">
+        <span class="co-taiyo">取引態様：{{torihiki_taiyo}}</span>
+        <div class="co-tel num">TEL {{company_tel}}</div>
+      </div>
+    </div>
+    <div class="legal">本図面の記載内容は、契約前に重要事項説明書などの関係書類でご確認ください。</div>
+  </footer>
+
+</div>
+</body>
+</html>

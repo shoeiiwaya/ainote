@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.local/schemas/portal_lead.schema.json",
+  "title": "ri-hub portal lead",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "portal_lead_id",
+    "platform_id",
+    "source_method",
+    "received_at",
+    "property_ref",
+    "inquiry_type",
+    "consent_status",
+    "reply_gate",
+    "raw_ref"
+  ],
+  "properties": {
+    "portal_lead_id": {
+      "type": "string",
+      "pattern": "^PLEAD-[0-9]{8}-[0-9]{4}$"
+    },
+    "platform_id": {
+      "type": "string",
+      "enum": [
+        "suumo",
+        "lifull_homes",
+        "athome_atbb",
+        "rakumachi",
+        "kenbiya",
+        "own_site",
+        "line_official",
+        "other"
+      ]
+    },
+    "source_method": {
+      "type": "string",
+      "enum": ["email", "csv", "api", "manual", "webhook"]
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "customer_name": {
+      "type": ["string", "null"]
+    },
+    "customer_contact": {
+      "type": ["string", "null"]
+    },
+    "property_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inquiry_type": {
+      "type": "string",
+      "enum": [
+        "viewing",
+        "document_request",
+        "price",
+        "loan",
+        "purchase_offer",
+        "rent_application",
+        "sale_assessment",
+        "other"
+      ]
+    },
+    "message": {
+      "type": ["string", "null"]
+    },
+    "consent_status": {
+      "type": "string",
+      "enum": ["opt_in", "unknown", "stop_requested"]
+    },
+    "reply_gate": {
+      "type": "string",
+      "enum": ["ready", "hold"]
+    },
+    "hold_reason": {
+      "type": ["string", "null"],
+      "enum": [
+        "stock_unknown",
+        "stock_ended",
+        "opt_in_unknown",
+        "stop_requested",
+        "contact_unknown",
+        "property_unknown",
+        "privacy_risk",
+        "professional_review",
+        "ad_permission_unknown",
+        null
+      ]
+    },
+    "raw_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "availability": {
+      "type": "string",
+      "enum": ["募集中", "要確認", "終了"]
+    },
+    "ad_permission": {
+      "type": "string",
+      "enum": ["可", "不明", "不可"]
+    },
+    "assignee": {
+      "type": ["string", "null"]
+    },
+    "memo": {
+      "type": ["string", "null"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "reply_gate": {
+            "const": "hold"
+          }
+        }
+      },
+      "then": {
+        "required": ["hold_reason"]
+      }
+    }
+  ]
+}

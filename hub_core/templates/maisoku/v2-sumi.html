@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>物件図面</title>
+<style>
+  /* 墨一色・組版主義 — 罫0.1/0.2mm・級数ジャンプ・字詰め・疎密のみで階層を作る */
+  :root {
+    --mincho: "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Yu Mincho", "YuMincho", serif;
+    --gothic: {{font_display}};
+    --ink: #1a1a1a;
+    --ink70: #595959;
+    --ink40: #a0a0a0;
+    /* 印刷正本は紙白。温かみはインキでなく用紙で出す（指定: クリーム系上質紙＝書籍用紙 淡クリーム等） */
+    --paper: #fff;
+    /* 画面配布用PDFのみ紙色を擬似（印刷には載せない） */
+    --paper-screen: #fbfaf7;
+  }
+
+  /* 価格組み: 数字=明朝W6全角、助数詞「万円」はsize-adjustで42%に級下げ（同一ベースライン） */
+  @font-face {
+    font-family: "Kakaku";
+    src: local("Hiragino Mincho ProN W6"), local("HiraMinProN-W6");
+    unicode-range: U+0030-0039, U+002C, U+002E;
+  }
+  @font-face {
+    font-family: "Kakaku";
+    src: local("Hiragino Mincho ProN W6"), local("HiraMinProN-W6");
+    size-adjust: 42%;
+    unicode-range: U+4E07, U+5104, U+5186;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: A4; margin: 0; }
+  html, body { background: #8e8e8e; }
+  @media print { html, body { background: none; } }
+  body {
+    font-family: var(--gothic);
+    color: var(--ink);
+    font-feature-settings: "palt" 1;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .page {
+    width: 210mm; height: 297mm;
+    margin: 0 auto;
+    background: var(--paper-screen);
+    position: relative;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  /* 印刷は紙白に落とす（.page定義より後置でカスケード上書き） */
+  @media print { .page { background: var(--paper); } }
+  .media-frame { position: relative; overflow: hidden; background: #e8e7e2; }
+  .media-frame::before {
+    content: attr(data-empty-label); position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink70); font: 300 7pt/1.4 var(--gothic); letter-spacing: .08em;
+  }
+  .media-frame img { position: relative; z-index: 1; }
+  .media-frame img[src=""] { visibility: hidden; }
+  .media-frame img[src=""] ~ figcaption { display: none; }
+
+  /* ───── ヒーロー（天・左右の3辺裁ち落とし） ───── */
+  .hero { position: relative; width: 210mm; height: 81mm; flex: none; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; display: block; }
+  .hashira {
+    position: absolute; top: 5mm; left: 12mm; right: 12mm;
+    display: flex; justify-content: space-between; align-items: baseline;
+    color: #fff;
+    font: 300 6pt/1 var(--gothic);
+    letter-spacing: 0.3em;
+    padding-bottom: 1.3mm;
+    border-bottom: 0.1mm solid rgba(255,255,255,0.75); z-index: 2;
+  }
+  /* letter-spacing は最終字の後ろにも字間を作るため、右ツラ要素は末尾分を殺す */
+  .hashira .r { letter-spacing: 0.3em; margin-right: -0.3em; }
+  .hero img[src=""] + .hashira { color: var(--ink); border-bottom-color: var(--ink40); }
+  .hashira .vr {
+    display: inline-block;
+    width: 0; height: 2mm;
+    border-left: 0.1mm solid rgba(255,255,255,0.75);
+    margin: 0 2.4mm -0.3mm 1.8mm; /* 左は前置字の字送り0.3em分を差し引いて等アキに */
+  }
+
+  /* 縦書きの柱 — ヒーローのキャプションを小口に立てる
+     高さ45mmで折り返し（行は左へ送る）、サブ写真帯f3の小口裁ち落としと干渉させない */
+  .v-cap {
+    position: absolute; right: 12mm; top: 87mm;
+    height: 45mm;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    font: 300 6.5pt/1.8 var(--mincho);
+    letter-spacing: 0.1em;
+    color: var(--ink70);
+  }
+  .v-cap .tcy { text-combine-upright: all; }
+  .hero:has(img[src=""]) + .v-cap { display: none; }
+
+  /* ───── タイトル（疎・細明朝大組み） ───── */
+  .title-block { margin: 4.2mm 24mm 0 12mm; }
+  h1.title {
+    font-family: var(--mincho);
+    font-weight: 300;
+    font-size: 38pt;
+    line-height: 1.2;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+  /* 大見出しのみ手動約物処理: palt任せにせず読点・句点の前アキを個別に詰める（文末「。」はやや深く） */
+  h1.title .kt-ten  { margin-left: -0.04em; }
+  h1.title .kt-kuten { margin-left: -0.05em; }
+  .subline {
+    margin-top: 2.2mm;
+    font: 300 8pt/1.5 var(--gothic);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .subline .vr {
+    display: inline-block;
+    width: 0; height: 2.5mm;
+    border-left: 0.1mm solid var(--ink40);
+    margin: 0 2.4mm -0.4mm;
+  }
+
+  /* ───── リード＋価格（読ませる層・疎） ───── */
+  .mid { margin: 2.8mm 24mm 0 12mm; display: flex; gap: 9mm; }
+  .lead {
+    flex: 1;
+    font-family: var(--mincho);
+    font-weight: 300;
+    font-size: 9pt;
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+    text-align: justify;
+    font-feature-settings: "palt" 1, "onum" 1;
+  }
+  .price-col { width: 57mm; flex: none; }
+  .price-row { display: flex; align-items: flex-start; }
+  .price-label-v {
+    writing-mode: vertical-rl;
+    font: 300 7pt/1 var(--gothic);
+    letter-spacing: 0.35em;
+    color: var(--ink70);
+    margin: 1.2mm 2.6mm 0 0;
+  }
+  .price-num {
+    font-family: "Kakaku", var(--mincho);
+    font-weight: 600;
+    font-size: 34pt;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .price-note {
+    margin: 1.4mm 0 0 5.4mm;
+    font: 300 6.5pt/1.4 var(--gothic);
+    color: var(--ink70);
+  }
+  .price-note:empty { display: none; }
+  .taiyo {
+    margin: 2.2mm 0 0 5.4mm;
+    border-top: 0.1mm solid var(--ink);
+    padding-top: 1.7mm;
+    font: 300 7pt/1 var(--gothic);
+    color: var(--ink70);
+  }
+  .taiyo b {
+    font: 600 9pt/1 var(--gothic);
+    color: var(--ink);
+    letter-spacing: 0.1em;
+    margin-left: 2.4mm;
+  }
+
+  /* ───── サブ写真（非対称配置） ───── */
+  .subs { margin: 2.6mm 0 0 12mm; display: flex; gap: 3mm; align-items: flex-start; }
+  .subs figure { position: relative; margin: 0; }
+  .subs img { width: 100%; height: 34mm; object-fit: cover; display: block; }
+  .f1 { width: 38mm; flex: none; }
+  .f2 { width: 56mm; flex: none; }
+  .f3 { flex: 1; }
+  .f3 img { height: 38mm; object-position: 50% 64%; }
+  .f2 img { object-position: 50% 55%; }
+  .subs figcaption {
+    margin-top: 1mm;
+    font: 300 7pt/1.6 var(--mincho); /* キャプション行送り1.6（§3.2） */
+    color: var(--ink70);
+  }
+  .f3 figcaption { padding-right: 12mm; }
+  .staging-note {
+    margin: 0.8mm 12mm 0;
+    font: 300 7pt/1.4 var(--gothic);
+    color: var(--ink70);
+    text-align: right;
+  }
+  .staging-note:empty { display: none; }
+
+  /* ───── 調べる層（密） ───── */
+  .data-layer {
+    margin: 2.8mm 12mm 0;
+    border-top: 0.2mm solid var(--ink);
+    padding-top: 1.8mm;
+  }
+  .data-body { display: flex; gap: 6mm; }
+  .madori { width: 52mm; flex: none; }
+  .madori img { width: 100%; height: 34mm; object-fit: contain; display: block; }
+  .madori.media-frame::before { top: 3.5mm; bottom: auto; height: 34mm; }
+  .madori figcaption {
+    margin-top: 1mm;
+    font: 300 6.5pt/1.4 var(--mincho);
+    color: var(--ink70);
+  }
+  .spec { flex: 1; }
+
+  .sec-label {
+    /* 章ラベルは「字間を開けた極小ラベル＋下線罫」で作る（§6）。強調はW5まで（§3.1） */
+    font: normal 7.5pt/1 "HiraginoSans-W5", var(--gothic);
+    letter-spacing: 0.2em;
+    padding-bottom: 1.1mm;
+    border-bottom: 0.1mm solid var(--ink);
+    display: block;
+  }
+  .sec-label.second { margin-top: 1.8mm; }
+
+  table.spec-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  table.spec-table th, table.spec-table td {
+    border-bottom: 0.1mm solid var(--ink40);
+    padding: 0.5mm 0 0.4mm;
+    vertical-align: top;
+    text-align: left;
+    font-weight: 300;
+  }
+  table.spec-table th {
+    font-size: 6.2pt; line-height: 1.45;
+    color: var(--ink70);
+    padding-right: 2mm;
+  }
+  table.spec-table td {
+    font-family: "HiraginoSans-W4", var(--gothic);
+    font-size: 7pt; line-height: 1.45;
+    font-weight: normal;
+    font-variant-numeric: tabular-nums;
+    padding-right: 3mm;
+  }
+  table.spec-table td:last-child { padding-right: 0; }
+
+  /* ───── 特記事項（上下罫のみの表組み・bottom-assembly先頭） ───── */
+  .tokki {
+    margin: 2mm 12mm 0;
+    border-top: 0.1mm solid var(--ink);
+    border-bottom: 0.1mm solid var(--ink);
+    padding: 1.1mm 0 1mm;
+  }
+  .tokki-head { font: normal 6.5pt/1 "HiraginoSans-W5", var(--gothic); letter-spacing: 0.2em; }
+  .tokki-head .note {
+    font: 300 6pt/1 var(--gothic);
+    color: var(--ink70);
+    letter-spacing: 0.03em;
+    margin-left: 2mm;
+  }
+  .tokki-text { margin-top: 0.8mm; font: 300 6.5pt/1.45 var(--gothic); white-space: pre-line; }
+
+  /* ───── 日付帯（取引条件） ───── */
+  .dates {
+    margin: 1.6mm 12mm 0;
+    border-top: 0.1mm solid var(--ink);
+    border-bottom: 0.1mm solid var(--ink40);
+    padding: 1.3mm 0 1.1mm;
+    display: flex; gap: 7mm; align-items: baseline;
+  }
+  .dates .dl { font: 300 6pt/1 var(--gothic); color: var(--ink70); margin-right: 1.7mm; }
+  .dates .dv { font: normal 7.5pt/1 "HiraginoSans-W5", var(--gothic); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .dates .em .dv { font-family: "HiraginoSans-W6", var(--gothic); }
+
+  .calc-notes {
+    margin: 1mm 12mm 0;
+    font: 300 6pt/1.3 var(--gothic);
+    color: var(--ink70);
+  }
+
+  /* ───── 会社情報・問合せ ───── */
+  .legal {
+    margin: 1.4mm 12mm 0;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm;
+  }
+  .legal .co { font: 300 6.2pt/1.45 var(--gothic); color: var(--ink70); }
+  .legal .co .name { font: 600 8pt/1 var(--gothic); color: var(--ink); margin-right: 2.2mm; }
+  .legal .ask { font: 300 6.5pt/1 var(--gothic); color: var(--ink70); white-space: nowrap; }
+  .legal .ask b {
+    font: 600 11pt/1 var(--gothic);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    margin-left: 1.8mm;
+  }
+
+  /* ───── 地のノンブル行 ───── */
+  .nombre {
+    margin: 1.4mm 12mm 0;
+    border-top: 0.1mm solid var(--ink);
+    padding-top: 1.2mm;
+    display: flex; justify-content: space-between;
+    font: 300 6pt/1 var(--gothic);
+    letter-spacing: 0.25em;
+    color: var(--ink70);
+    font-variant-numeric: tabular-nums;
+  }
+  .nombre .vr {
+    display: inline-block;
+    width: 0; height: 2mm;
+    border-left: 0.1mm solid var(--ink40);
+    margin: 0 2.2mm -0.3mm 1.7mm; /* 左は前置字の字送り0.25em分を差し引いて等アキに */
+  }
+  .nombre > span:last-child { margin-right: -0.25em; } /* 末尾字間を殺して右ツラを罫端に揃える（.vrに波及させない） */
+
+  .bottom-assembly { margin-top: auto; padding-bottom: 6mm; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero media-frame" data-empty-label="{{photo_main_empty_label}}">
+    <img src="{{photo_main}}" alt="{{photo_main_alt}}">
+    <div class="hashira">
+      <span>物件図面<span class="vr"></span>{{property_type}}</span>
+      <span class="r">{{address}}</span>
+    </div>
+  </div>
+
+  <!-- 数字を含むキャプションは <span class="tcy">…</span> で縦中横にする -->
+  <div class="v-cap">{{photo_main_caption}}（{{photo_main_tag}}）</div>
+
+  <div class="title-block">
+    <h1 class="title">{{title_copy}}</h1>
+    <p class="subline">{{address}}<span class="vr"></span>{{nearest_station}}<span class="vr"></span>{{access}}</p>
+  </div>
+
+  <section class="mid">
+    <p class="lead">{{lead}}</p>
+    <div class="price-col">
+      <div class="price-row">
+        <span class="price-label-v">{{price_label}}</span>
+        <span class="price-num">{{price_num}}{{price_unit}}</span>
+      </div>
+      <p class="price-note">{{price_note}}</p>
+      <p class="taiyo">取引態様<b>{{torihiki_taiyo}}</b></p>
+    </div>
+  </section>
+
+  <div class="subs">
+    <figure class="f1 media-frame" data-empty-label="{{photo_sub1_empty_label}}">
+      <img src="{{photo_sub1}}" alt="{{photo_sub1_alt}}">
+      <figcaption>{{photo_sub1_caption}}（{{photo_sub1_tag}}）</figcaption>
+    </figure>
+    <figure class="f2 media-frame" data-empty-label="{{photo_sub2_empty_label}}">
+      <img src="{{photo_sub2}}" alt="{{photo_sub2_alt}}">
+      <figcaption>{{photo_sub2_caption}}（{{photo_sub2_tag}}）</figcaption>
+    </figure>
+    <figure class="f3 media-frame" data-empty-label="{{photo_sub3_empty_label}}">
+      <img src="{{photo_sub3}}" alt="{{photo_sub3_alt}}">
+      <figcaption>{{photo_sub3_caption}}（{{photo_sub3_tag}}）</figcaption>
+    </figure>
+  </div>
+  <p class="staging-note">{{staging_note}}</p>
+
+  <section class="data-layer">
+    <div class="data-body">
+      <figure class="madori media-frame" data-empty-label="{{photo_floorplan_empty_label}}">
+        <span class="sec-label">間取図</span>
+        <img src="{{photo_floorplan}}" alt="{{photo_floorplan_alt}}" style="margin-top:1.6mm;">
+        <figcaption>{{photo_floorplan_caption}}　{{floor_plan}}</figcaption>
+      </figure>
+      <div class="spec">
+        <span class="sec-label">物件概要</span>
+        <table class="spec-table">
+          <colgroup>
+            <col style="width:15mm"><col style="width:39mm">
+            <col style="width:20mm"><col>
+          </colgroup>
+          <tr><th>所在地</th><td colspan="3">{{address}}</td></tr>
+          <tr><th>最寄駅・交通</th><td colspan="3">{{nearest_station}}　{{access}}</td></tr>
+          <tr>
+            <th>価格</th><td>{{price}}</td>
+            <th>間取り</th><td>{{floor_plan}}</td>
+          </tr>
+          <tr>
+            <th>土地面積</th><td>{{land_area}}</td>
+            <th>建物面積</th><td>{{building_area}}</td>
+          </tr>
+          <tr>
+            <th>築年月</th><td>{{built}}</td>
+            <th>構造</th><td>{{structure}}</td>
+          </tr>
+        </table>
+
+        <span class="sec-label second">法令・取引条件</span>
+        <table class="spec-table">
+          <colgroup>
+            <col style="width:15mm"><col style="width:39mm">
+            <col style="width:20mm"><col>
+          </colgroup>
+          <tr><th>接道状況</th><td colspan="3">{{road}}</td></tr>
+          <tr>
+            <th>用途地域</th><td>{{youto}}</td>
+            <th>建蔽率・容積率</th><td>{{kenpei_yoseki}}</td>
+          </tr>
+          <tr>
+            <th>私道負担</th><td>{{shidou}}</td>
+            <th>現況</th><td>{{genkyo}}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <table class="spec-table" style="margin-top:1.4mm;">
+      <colgroup><col style="width:15mm"><col></colgroup>
+      <tr><th>設備</th><td>{{setsubi}}</td></tr>
+      <tr><th>備考</th><td>{{bikou}}</td></tr>
+    </table>
+  </section>
+
+  <div class="bottom-assembly">
+    <div class="tokki">
+      <p class="tokki-head">特記事項</p>
+      <p class="tokki-text">{{special_notes}}</p>
+    </div>
+
+    <div class="dates">
+      <span><span class="dl">情報公開日</span><span class="dv">{{published}}</span></span>
+      <span><span class="dl">次回更新予定日</span><span class="dv">{{next_update}}</span></span>
+      <span class="em"><span class="dl">取引条件の有効期限</span><span class="dv">{{yuko_kigen}}</span></span>
+      <span><span class="dl">引渡し時期</span><span class="dv">{{hikiwatashi}}</span></span>
+    </div>
+
+    <footer class="legal">
+      <div class="co">
+        <span class="name">{{company_name}}</span>{{license}}　{{company_address}}<br>
+        {{association}}　{{fair_trade_association}}
+      </div>
+      <p class="ask">物件のお問合せ　TEL<b>{{company_tel}}</b></p>
+    </footer>
+
+    <div class="nombre">
+      <span>物件図面</span>
+      <span>1 / 1</span>
+    </div>
+  </div>
+
+</div>
+<script>
+  /* 大見出しの手動約物処理。入力された title_copy の読点・句点を
+     カーニング用 span で括る（描画前に一度だけ・h1.title 限定） */
+  (function () {
+    var h = document.querySelector("h1.title");
+    if (!h) return;
+    h.innerHTML = h.textContent
+      .replace(/、/g, '<span class="kt-ten">、</span>')
+      .replace(/。/g, '<span class="kt-kuten">。</span>');
+  })();
+</script>
+</body>
+</html>

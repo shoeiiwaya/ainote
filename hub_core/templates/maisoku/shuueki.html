@@ -1,0 +1,133 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<title>収益マイソク｜{{property_name}}</title>
+<style>
+@page{size:A4 landscape;margin:0}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#e9ebed}
+body{font-family:{{font_display}};color:#1c2530;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-feature-settings:"palt"}
+.sheet{width:297mm;min-height:210mm;margin:0 auto;background:#fff;padding:6mm 6mm 0;display:flex;flex-direction:column}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.body{display:grid;grid-template-columns:74mm 104mm 1fr;gap:4mm;flex:1}
+/* ── 左カラム: 物件名/価格/利回り/写真/地図 ── */
+.l-type{display:inline-block;font-size:8pt;font-weight:700;color:{{accent_ink}};background:{{accent}};padding:1mm 3mm .9mm;letter-spacing:.08em}
+.l-name{font-size:16pt;font-weight:700;line-height:1.2;margin:1.6mm 0 2mm;border-bottom:.8mm solid {{accent}};padding-bottom:1.6mm}
+.l-pricerow{display:flex;gap:2mm;align-items:stretch;margin-bottom:2mm}
+.l-price{flex:1;background:{{accent}};color:{{accent_ink}};padding:1.6mm 3mm;display:flex;align-items:baseline;gap:2mm}
+.l-price .pl{font-size:7pt;line-height:1.2;opacity:.9}
+.l-price .pv{font-size:18pt;font-weight:800;line-height:1}
+.l-price .pu{font-size:8pt}
+.price-note{font-size:6.2pt;color:#666;line-height:1.4;margin:-.8mm 0 1.4mm;white-space:pre-line}
+.price-note:empty{display:none}
+.l-yield{flex:none;border:.4mm solid {{accent}};padding:1mm 3mm;text-align:center;min-width:24mm}
+.l-yield .yl{font-size:6.5pt;color:#555}
+.l-yield .yv{font-size:13pt;font-weight:800;color:#b3261e;line-height:1.1}
+.boxlabel{font-size:7pt;font-weight:700;color:{{accent_text}}}
+.l-photo{border:.3mm solid #cfd3d7;height:62mm;margin-top:1.4mm;background:repeating-linear-gradient(45deg,#fafbfc,#fafbfc 10px,#f0f2f4 10px,#f0f2f4 20px);display:flex;align-items:center;justify-content:center;color:#9aa4ad;font-size:8pt;position:relative;overflow:hidden}
+.l-map{border:.3mm solid #cfd3d7;height:46mm;margin-top:2.4mm;background:repeating-linear-gradient(45deg,#fafbfc,#fafbfc 12px,#f0f2f4 12px,#f0f2f4 24px);display:flex;align-items:center;justify-content:center;color:#9aa4ad;font-size:8pt;position:relative;overflow:hidden}
+.media::before{content:attr(data-empty-label);position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.media img[src=""]{display:none}
+.media-tag{position:absolute;top:1.5mm;right:1.5mm;z-index:2;background:rgba(28,37,48,.75);color:#fff;padding:.6mm 1.4mm;font-size:5.8pt;line-height:1}
+.media img[src=""]~.media-tag,.media img[src=""]~.media-caption{display:none}
+/* ── 中央カラム: オーナーチェンジ/セールスポイント/キャッチ/間取り図/周辺環境 ── */
+.c-oc{font-size:9pt;font-weight:700;color:#1c2530}
+.c-sp{font-size:8.5pt;line-height:1.7;color:{{accent_text}};white-space:pre-line;margin:1mm 0 2mm}
+.c-catch{font-size:14pt;font-weight:700;color:#1c2530;border-left:1.6mm solid {{accent}};padding-left:2.4mm;line-height:1.35;margin-bottom:2mm}
+.c-zumen{border:.3mm solid #cfd3d7;height:92mm;background:repeating-linear-gradient(45deg,#fafbfc,#fafbfc 12px,#f0f2f4 12px,#f0f2f4 24px);position:relative;display:flex;align-items:center;justify-content:center;color:#9aa4ad;font-size:9pt;overflow:hidden}
+.c-zumen img{object-fit:contain}
+.c-zumen .zl{position:absolute;top:0;left:0;z-index:2;background:#eef1f4;padding:1mm 2.4mm;font-size:7.5pt;font-weight:700;color:{{accent_text}}}
+.c-area{font-size:10pt;font-weight:700;text-align:right;margin-top:1.6mm}
+.c-area small{font-size:7pt;color:#666;font-weight:400}
+.c-kankyo{margin-top:2mm;border:.3mm dashed #cfd3d7;padding:1.6mm 2.4mm}
+.c-kankyo .kl{font-size:7pt;font-weight:700;color:{{accent_text}};margin-bottom:.8mm}
+.c-kankyo .kv{font-size:7.5pt;line-height:1.6;color:#444;white-space:pre-line}
+/* ── 右カラム: 詳細スペック表 ── */
+table.r-spec{border-collapse:collapse;width:100%;font-size:7.4pt;table-layout:fixed}
+table.r-spec th{background:#eef1f4;color:#555;font-weight:600;text-align:left;padding:1.1mm 1.6mm;border:.2mm solid #d9dde1;white-space:nowrap;width:17mm;vertical-align:middle;line-height:1.25}
+table.r-spec td{padding:1.1mm 1.6mm;border:.2mm solid #d9dde1;vertical-align:middle;line-height:1.3;word-break:break-all}
+table.r-spec td.full{width:auto}
+.r-income th{background:{{accent}};color:{{accent_ink}}}
+.r-note{font-size:6.4pt;color:#777;margin-top:1.2mm;line-height:1.5}
+/* ── 帯(取扱業者欄) ── */
+.obi{margin-top:3mm;background:{{accent}};color:{{accent_ink}};display:flex;align-items:center;gap:5mm;padding:3mm 5mm;border-radius:1mm}
+.obi-logo{width:13mm;height:13mm;border-radius:50%;background:{{accent_soft}};flex:none}
+.obi-co{flex:none}
+.obi-co .nm{font-size:12.5pt;font-weight:700;letter-spacing:.03em}
+.obi-co .lic{font-size:6.6pt;opacity:.85;margin-top:.6mm}
+.obi-c{font-size:7.4pt;line-height:1.7}
+.obi-c .tel{font-size:9pt;font-weight:700}
+.obi-spacer{flex:1}
+.obi-holiday{font-size:7pt;line-height:1.6;text-align:right}
+table.obi-fee{border-collapse:collapse;font-size:6.8pt;color:#1c2530;background:#fff;border-radius:1mm;overflow:hidden}
+table.obi-fee th{background:#dfe3e8;padding:.9mm 2mm;border:.2mm solid #c7ccd2;white-space:nowrap}
+table.obi-fee td{background:#fff;padding:.9mm 2mm;border:.2mm solid #c7ccd2;white-space:nowrap}
+.ryutsu{font-size:6.2pt;color:#9aa4ad;text-align:right;padding:1mm 1mm .6mm}
+@media print{html,body{background:#fff}.sheet{margin:0}}
+</style></head><body>
+<div class="sheet">
+ <div class="body">
+  <!-- 左 -->
+  <div class="col-l">
+    <span class="l-type">{{property_type}}</span>
+    <div class="l-name">{{property_name}}</div>
+    <div class="l-pricerow">
+      <div class="l-price"><span class="pl">{{price_label}}</span><span class="pv num">{{price}}</span></div>
+      <div class="l-yield"><div class="yl">利回り</div><div class="yv num">{{yield_rate}}</div></div>
+    </div>
+    <div class="price-note">{{price_note}}</div>
+    <div class="boxlabel">■物件写真</div>
+    <div class="l-photo media" data-empty-label="{{photo_main_empty_label}}"><img src="{{photo_main}}" alt="{{photo_main_alt}}"><span class="media-tag">{{photo_main_tag}}</span><span class="media-caption">{{photo_main_caption}}</span></div>
+    <div class="boxlabel" style="margin-top:2mm">■物件周辺地図</div>
+    <div class="l-map media" data-empty-label="{{photo_map_empty_label}}"><img src="{{photo_map}}" alt="{{photo_map_alt}}"><span class="media-tag">{{photo_map_tag}}</span><span class="media-caption">{{photo_map_caption}}</span></div>
+  </div>
+  <!-- 中央 -->
+  <div class="col-c">
+    <div class="c-oc">{{owner_change}}</div>
+    <div class="c-sp">{{sales_points}}</div>
+    <div class="c-catch">{{title_copy}}</div>
+    <div class="boxlabel">■間取り図</div>
+    <div class="c-zumen media" data-empty-label="{{photo_floorplan_empty_label}}"><img src="{{photo_floorplan}}" alt="{{photo_floorplan_alt}}"><span class="zl">間取り図</span><span class="media-caption">{{photo_floorplan_caption}}　{{floor_plan}}</span></div>
+    <div class="c-area">専有/延床面積　{{building_area}}　<small>バルコニー {{balcony_area}}</small></div>
+    <div class="c-kankyo"><div class="kl">■周辺環境</div><div class="kv">{{surroundings}}</div></div>
+  </div>
+  <!-- 右: スペック表 -->
+  <div class="col-r">
+    <table class="r-spec">
+      <tr><th>最寄駅</th><td class="full" colspan="3">{{nearest_station}}</td></tr>
+      <tr><th>沿線</th><td class="full" colspan="3" style="white-space:pre-line">{{route_lines}}</td></tr>
+      <tr><th>所在地</th><td class="full" colspan="3">{{address}}</td></tr>
+      <tr><th>構造</th><td class="full" colspan="3">{{structure}}</td></tr>
+      <tr><th>価格</th><td class="num">{{price}}</td><th>築年月</th><td>{{built}}</td></tr>
+      <tr><th>管理費/月</th><td class="num">{{management_fee}}</td><th>現況</th><td>{{genkyo}}</td></tr>
+      <tr><th>修繕積立/月</th><td class="num">{{repair_fund}}</td><th>土地権利</th><td>{{land_right}}</td></tr>
+      <tr><th>その他費用</th><td class="num">{{other_fee}}</td><th>用途地域</th><td>{{youto}}</td></tr>
+      <tr><th>間取</th><td>{{floor_plan}}</td><th>敷地面積</th><td class="num">{{land_area}}</td></tr>
+      <tr><th>専有/延床</th><td class="num">{{building_area}}</td><th>取引形態</th><td>{{torihiki_taiyo}}</td></tr>
+      <tr><th>建ぺい/容積</th><td class="num">{{kenpei_yoseki}}</td><th>引渡</th><td>{{hikiwatashi}}</td></tr>
+      <tr><th>階建/階</th><td>{{floors_total}}</td><th>駐輪/駐車</th><td>{{parking}}</td></tr>
+      <tr><th>総戸数</th><td>{{total_units}}</td><th>接道</th><td>{{road}}</td></tr>
+      <tr><th>分譲会社</th><td class="full" colspan="3">{{bunjou_company}}</td></tr>
+      <tr><th>管理会社</th><td class="full" colspan="3">{{kanri_company}}</td></tr>
+      <tr><th>施工</th><td class="full" colspan="3">{{sekou_company}}</td></tr>
+      <tr class="r-income"><th>{{income_basis_label}}</th><td class="num">{{monthly_rent}}</td><th>年間収入</th><td class="num">{{annual_income}}</td></tr>
+      <tr class="r-income"><th>利回り</th><td class="num">{{yield_rate}}</td><th>賃貸借期間</th><td>{{lease_period}}</td></tr>
+      <tr><th>備考</th><td class="full" colspan="3" style="white-space:pre-line">{{bikou}}</td></tr>
+      <tr><th>特記事項</th><td class="full" colspan="3" style="white-space:pre-line">{{special_notes}}</td></tr>
+    </table>
+    <div class="r-note">※賃料・利回りの入力値は将来の収益を保証するものではありません。<br>※図面と相違する場合は現況を優先します。</div>
+  </div>
+ </div>
+
+ <!-- 帯(取扱業者欄=必要表示事項) -->
+ <div class="obi">
+   <div class="obi-logo"></div>
+   <div class="obi-co"><div class="nm">{{company_name}}</div><div class="lic">{{license}}　{{association}}<br>{{fair_trade_association}}</div></div>
+   <div class="obi-c">{{company_address}}<br><span class="tel num">TEL {{company_tel}}</span>　FAX {{company_fax}}<br>{{company_email}}</div>
+   <div class="obi-spacer"></div>
+   <div class="obi-holiday">定休日 {{holiday}}<br>担当 {{staff}}</div>
+   <table class="obi-fee"><tr><th>手数料</th><td>{{fee}}</td><th>取引形態</th><td>{{torihiki_taiyo}}</td></tr>
+     <tr><th>鍵</th><td>{{key_handling}}</td><th>担当</th><td>{{staff}}</td></tr></table>
+ </div>
+ <div class="ryutsu">レインズ {{reins_no}}　／　広告区分 {{ad_permission}}　／　帯替え {{obi_swap}}　／　有効期限 {{yuko_kigen}}</div>
+</div>
+</body></html>

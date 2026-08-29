@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.local/schemas/hub_event.schema.json",
+  "title": "ri-hub event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "source_tool",
+    "source_ref",
+    "payload",
+    "risk_level",
+    "gate_status",
+    "created_at"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^HEV-[0-9]{8}-[0-9]{4}$"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "inventory",
+        "document",
+        "research",
+        "ad",
+        "application",
+        "contract",
+        "money",
+        "report",
+        "incident",
+        "management",
+        "system"
+      ]
+    },
+    "source_tool": {
+      "type": "string",
+      "pattern": "^ri-[a-z0-9-]+$"
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_id": {
+      "type": ["string", "null"]
+    },
+    "customer_id": {
+      "type": ["string", "null"]
+    },
+    "property_id": {
+      "type": ["string", "null"]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["L0", "L1", "L2", "L3", "L4"]
+    },
+    "gate_status": {
+      "type": "string",
+      "enum": ["pass", "warn", "hold", "block", "approval"]
+    },
+    "hold_reason": {
+      "type": ["string", "null"]
+    },
+    "required_human_role": {
+      "type": ["string", "null"],
+      "enum": ["担当者", "責任者", "宅建士", "弁護士", "行政書士", "建築士", "税理士", "司法書士", "経理", null]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "gate_status": {
+            "enum": ["hold", "block"]
+          }
+        }
+      },
+      "then": {
+        "required": ["hold_reason"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "gate_status": {
+            "const": "approval"
+          }
+        }
+      },
+      "then": {
+        "required": ["required_human_role"]
+      }
+    }
+  ]
+}
